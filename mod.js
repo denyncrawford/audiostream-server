@@ -1,6 +1,7 @@
 import express from 'express';
 import { Server } from 'socket.io'
 import cors from 'cors';
+import { resolve } from 'path';
 
 const app = express();
 
@@ -32,7 +33,7 @@ app.get('/stream', (req, res) => {
   // send response as a stream with received chunks from the client socket
   if (!mainSocket) return res.status(404).send('No socket connection');
   res.writeHead(200, {
-    'Content-Type': 'audio/webm',
+    'Content-Type': 'audio/webm;codecs=opus',
     'Transfer-Encoding': 'chunked',
   });
   mainSocket.on('packet', blob => {
@@ -41,4 +42,8 @@ app.get('/stream', (req, res) => {
   mainSocket.on('end', () => {
     res.end();
   })
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(resolve('./index.html'));
 });
