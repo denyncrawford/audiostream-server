@@ -33,8 +33,7 @@ app.get('/stream', (req, res) => {
   // send response as a stream with received chunks from the client socket
   if (!mainSocket) return res.status(404).send('No socket connection');
   res.writeHead(200, {
-    'Content-Type': 'audio/webm;codecs=opus',
-    'Transfer-Encoding': 'chunked',
+    'Content-Type': 'audio/webm',
   });
   mainSocket.on('packet', blob => {
     res.write(blob);
