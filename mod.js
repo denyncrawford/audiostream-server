@@ -10,6 +10,8 @@ const server = app.listen(8081, () => {
     console.log('http://localhost:8081');
 });
 
+let mainSocket;
+
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -18,23 +20,25 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  socket.emit('initialized')
+  mainSocket = socket;
+  socket.on('disconnect', () => {
+    mainSocket = null;
+  });
 });
 
 // Stream route 
 
 app.get('/stream', (req, res) => {
-  if (Object.keys(io.sockets).length > 0) {
-    res.status(200);
-    res.contentType('audio/webm');
-    res.setHeader('Content-Disposition', 'attachment; filename=stream.webm');
-    io.on('packet', (packet) => {
-      res.write(packet);
-    })
-    io.on('end', () => {
-      res.end();
-    })
-  } else {
-    res.status(404).send('No clients connected');
-  }
+  // send response as a stream with received chunks from the client socket
+  if (!mainSocket) return res.status(404).send('No socket connection');
+  res.writeHead(200, {
+    'Content-Type': 'audio/webm',
+    'Transfer-Encoding': 'chunked',
+  });
+  mainSocket.on('packet', blob => {
+    res.write(blob);
+  })
+  mainSocket.on('end', () => {
+    res.end();
+  })
 });
