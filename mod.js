@@ -12,6 +12,7 @@ const server = app.listen(8081, () => {
 });
 
 let mainSocket;
+let firstChunk;
 
 const io = new Server(server, {
   cors: {
@@ -22,21 +23,29 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
   mainSocket = socket;
+  socket.once('packet', (packet) => {
+    firstChunk = Buffer.from(packet);
+  })
   socket.on('disconnect', () => {
     mainSocket = null;
+    firstChunk = null;
   });
 });
 
 // Stream route 
 
-app.get('/stream', (req, res) => {
-  // send response as a stream with received chunks from the client socket
+app.get('/stream', (_, res) => {
   if (!mainSocket) return res.status(404).send('No socket connection');
   res.writeHead(200, {
     'Content-Type': 'audio/webm',
   });
+  if (firstChunk) res.write(firstChunk);
   mainSocket.on('packet', blob => {
-    res.write(blob);
+    const chunk = Buffer.from(blob);
+    res.write(chunk);
+  })
+  mainSocket.on('error', err => {
+    res.status(500).send(err);
   })
   mainSocket.on('end', () => {
     res.end();
