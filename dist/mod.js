@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
-const path_1 = require("path");
 const node_stream_1 = require("node:stream");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -70,8 +69,7 @@ io.on("connection", (socket) => {
     });
     socket.on('end', () => {
         if (roomStream) {
-            if (roomStream)
-                roomStream.push(null);
+            roomStream.push(null);
             roomStream.isEnded = true;
         }
         roomStream = null;
@@ -80,8 +78,7 @@ io.on("connection", (socket) => {
     //  Handle the end of the stream
     socket.on("disconnect", () => {
         if (roomStream) {
-            if (roomStream.firstChunk)
-                roomStream.push(null);
+            roomStream.push(null);
             roomStream.isEnded = true;
         }
         roomStream = null;
@@ -103,7 +100,4 @@ app.get("/stream/:id", (req, res) => {
     if (roomStream.firstChunk)
         res.write(roomStream.firstChunk);
     roomStream.pipe(res);
-});
-app.get("/", (_, res) => {
-    res.sendFile((0, path_1.resolve)("./index.html"));
 });

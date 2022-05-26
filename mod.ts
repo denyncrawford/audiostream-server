@@ -35,7 +35,7 @@ const io = new Server(server, {
     origin: "*",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   },
-} as any);
+});
 
 io.on("connection", (socket: Socket) => {
   // Get the room name from the query string
@@ -48,7 +48,7 @@ io.on("connection", (socket: Socket) => {
     socket.conn.close();
     return;
   }
-  
+
   if (activeRooms.has(roomId)) {
     socket.emit("close_reason", "ROOM_ALREADY_EXISTS");
     socket.disconnect();
@@ -73,7 +73,7 @@ io.on("connection", (socket: Socket) => {
 
   socket.on('end', () => {
     if (roomStream) {
-      if (roomStream) roomStream.push(null);
+      roomStream.push(null);
       roomStream.isEnded = true;
     }
     roomStream = null;
@@ -82,7 +82,7 @@ io.on("connection", (socket: Socket) => {
   //  Handle the end of the stream
   socket.on("disconnect", () => {
     if (roomStream) {
-      if (roomStream.firstChunk) roomStream.push(null);
+      roomStream.push(null);
       roomStream.isEnded = true;
     }
     roomStream = null;
@@ -104,8 +104,4 @@ app.get("/stream/:id", (req: Request, res: Response) => {
   });
   if (roomStream.firstChunk) res.write(roomStream.firstChunk);
   roomStream.pipe(res);
-});
-
-app.get("/", (_, res: Response) => {
-  res.sendFile(resolve("./index.html"));
 });
