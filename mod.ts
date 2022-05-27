@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { Server, Socket } from "socket.io";
 import cors from "cors";
-import { resolve } from "path";
 import { Readable } from "node:stream";
 
 const app = express();
