@@ -17,9 +17,6 @@ class RoomStream extends Readable {
   constructor() {
     super({ objectMode: true });
     this.firstChunk = null;
-    this.on("end", () => {
-      this.destroy();
-    });
   }
   _read() {}
   setFirstChunk(chunk: Buffer) {
@@ -73,6 +70,7 @@ io.on("connection", (socket: Socket) => {
   socket.on('end', () => {
     if (roomStream) {
       roomStream.push(null);
+      roomStream.destroy();
       roomStream.isEnded = true;
     }
     roomStream = null;
@@ -80,8 +78,12 @@ io.on("connection", (socket: Socket) => {
   })
   //  Handle the end of the stream
   socket.on("disconnect", () => {
+
+    socket.removeAllListeners();
+
     if (roomStream) {
       roomStream.push(null);
+      roomStream.destroy();
       roomStream.isEnded = true;
     }
     roomStream = null;
