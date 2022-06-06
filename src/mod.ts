@@ -32,10 +32,18 @@ app.get("/stream/:id", (req: Request, res: Response) => {
   });
   
   if (roomStream.firstChunk) res.write(roomStream.firstChunk);
-  const listener = (chunk: Buffer) => res.write(chunk)
-  roomStream.on('data', listener);
-  roomStream.on('end', () => res.end());
-  roomStream.on('error', err => res.status(500).send(err));
+  
+  const chunkListener = (chunk: Buffer) => res.write(chunk)
+  const endListener = () => res.end();
+  const errorListener = (err: Error) => res.status(500).send(err)
 
-  res.on('close', () => roomStream.removeListener('data', listener));
+  roomStream.on('data', chunkListener);
+  roomStream.on('end', endListener);
+  roomStream.on('error', errorListener);
+
+  res.on('close', () => {
+    roomStream.removeListener('data', chunkListener);
+    roomStream.removeListener('end', endListener);
+    roomStream.removeListener('error', errorListener);
+  });
 });
