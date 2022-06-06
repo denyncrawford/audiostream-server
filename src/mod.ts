@@ -30,6 +30,12 @@ app.get("/stream/:id", (req: Request, res: Response) => {
   res.writeHead(200, {
     "Content-Type": "audio/webm",
   });
+  
   if (roomStream.firstChunk) res.write(roomStream.firstChunk);
-  roomStream.pipe(res);
+  const listener = (chunk: Buffer) => res.write(chunk)
+  roomStream.on('data', listener);
+  roomStream.on('end', () => res.end());
+  roomStream.on('error', err => res.status(500).send(err));
+
+  res.on('close', () => roomStream.removeListener('data', listener));
 });
