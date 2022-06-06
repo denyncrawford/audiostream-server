@@ -59,7 +59,7 @@ export const initIoListener = async (
         }
 
         const currentStream = activeRooms.get(roomId);
-        if (!currentStream) {
+        if (!currentStream || isReconnect) {
           roomStream = new RoomStream();
           activeRooms.set(roomId, roomStream);
         }
